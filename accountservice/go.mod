@@ -1,11 +1,10 @@
-module github.com/callistaenterprise/goblog/accountservice
+module github.com/AXR8ELW/data-pump-file/accountservice
 
 go 1.12
 
-replace github.com/callistaenterprise/goblog/common => /Users/eriklupander/privat/cadec2017/src/github.com/callistaenterprise/goblog/common
-
 require (
 	github.com/alexflint/go-arg v1.0.0
+	github.com/boltdb/bolt v1.3.1
 	github.com/go-chi/chi v4.0.2+incompatible
 	github.com/graphql-go/graphql v0.7.8
 	github.com/graphql-go/graphql-go-handler v0.2.3
