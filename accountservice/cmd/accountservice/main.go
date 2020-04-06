@@ -1,8 +1,10 @@
 package main
 
 import (
-	"datapipeline/data-pump-file/accountservice/internal/app/service"
 	"fmt"
+
+	"github.com/AXR8ELW/data-pump-file/accountservice/internal/app/dbclient"
+	"github.com/AXR8ELW/data-pump-file/accountservice/internal/app/service"
 )
 
 var appName = "accountservice"
