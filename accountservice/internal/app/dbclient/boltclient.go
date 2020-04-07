@@ -1,10 +1,12 @@
 package dbclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"github.com/AXR8ELW/data-pump-file/accountservice/internal/app/model"
 	"github.com/boltdb/bolt"
@@ -12,7 +14,7 @@ import (
 
 type IBoltClient interface {
 	OpenBoltDb()
-	QueryAccount(accountId string) (model.Account, error)
+	QueryAccountFilter() (model.Accounts, error)
 	InitializeBucket()
 	SeedAccounts()
 }
@@ -22,7 +24,7 @@ type BoltClient struct {
 
 func (bc *BoltClient) OpenBoltDb() {
 	var err error
-	bc.boltDB, err = bolt.Open("accounts.db", 0600, nil)
+	bc.boltDB, err = bolt.Open("accounts.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,7 +70,7 @@ func (bc *BoltClient) SeedAccounts() {
 // 	seedAccounts()
 // }
 
-func (bc *BoltClient) QueryAccount(accountId string) (model.Account, error) {
+func (bc *BoltClient) QueryAccountById(accountId string) (model.Account, error) {
 	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
 	account := model.Account{}
 
@@ -95,4 +97,66 @@ func (bc *BoltClient) QueryAccount(accountId string) (model.Account, error) {
 	}
 	// Return the Account struct and nil as error.
 	return account, nil
+}
+func (bc *BoltClient) QueryAccount() (model.Accounts, error) {
+	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
+	account := model.Account{}
+	accounts := model.Accounts{}
+
+	// Read an object from the bucket using boltDB.View
+	err := bc.boltDB.View(func(tx *bolt.Tx) error {
+		// Read the bucket from the DB
+		b := tx.Bucket([]byte("AccountBucket"))
+
+		// Read the value identified by our accountId supplied as []byte
+		accountBytes := b
+		if accountBytes == nil {
+			return fmt.Errorf("No account found for ")
+		}
+		b.ForEach(func(k, v []byte) error {
+			fmt.Println(string(k), string(v))
+			json.Unmarshal(v, &account)
+			accounts.Account = append(accounts.Account, account)
+			fmt.Println("marshalling done", accounts.Account[0])
+			return nil
+		})
+
+		// Return nil to indicate nothing went wrong, e.g no error
+		return nil
+	})
+	// If there were an error, return the error
+	if err != nil {
+		return model.Accounts{}, err
+	}
+	fmt.Println("Success AccountArray:")
+	// Return the Account struct and nil as error.
+	return accounts, nil
+}
+func (bc *BoltClient) QueryAccountFilter() (model.Accounts, error) {
+	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
+	account := model.Account{}
+	accounts := model.Accounts{}
+
+	// Read an object from the bucket using boltDB.View
+	err := bc.boltDB.View(func(tx *bolt.Tx) error {
+		// Read the bucket from the DB
+		c := tx.Bucket([]byte("AccountBucket")).Cursor()
+		min := []byte("10075")
+		max := []byte("10094")
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			fmt.Println(string(k), string(v))
+			json.Unmarshal(v, &account)
+			accounts.Account = append(accounts.Account, account)
+		}
+
+		// Return nil to indicate nothing went wrong, e.g no error
+		return nil
+	})
+	// If there were an error, return the error
+	if err != nil {
+		return model.Accounts{}, err
+	}
+	fmt.Println("Success AccountArray:")
+	// Return the Account struct and nil as error.
+	return accounts, nil
 }

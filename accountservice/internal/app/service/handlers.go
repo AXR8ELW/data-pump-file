@@ -15,7 +15,7 @@ var DBClient dbclient.IBoltClient
 func GetAccount(s string) {
 	fmt.Println("inside get account")
 	// Read the account struct BoltDB
-	account, err := DBClient.QueryAccount(s)
+	accounts, err := DBClient.QueryAccountFilter()
 
 	// If err, return a 404
 	if err != nil {
@@ -23,26 +23,15 @@ func GetAccount(s string) {
 		return
 	}
 
-	log.Printf("Account found %s", account.Name)
-	createFile(account)
+	createFile(accounts)
 	readFile()
 }
-func createFile(account model.Account) {
-	// file, err := os.Create("test.txt") // Truncates if file already exists, be careful!
-	// if err != nil {
-	// 	log.Fatalf("failed creating file: %s", err)
-	// }
-	// defer file.Close() // Make sure to close the file when you're done
-
-	// len, err := file.WriteString("The Go Programming Language, also commonly referred to as Golang, is a general-purpose programming language, developed by a team at Google.")
-
-	// if err != nil {
-	// 	log.Fatalf("failed writing to file: %s", err)
-	// }
+func createFile(accounts model.Accounts) {
 	fmt.Println("inside create file")
-	file, _ := json.MarshalIndent(account, "", " ")
 
+	file, _ := json.MarshalIndent(accounts, "", " ")
 	_ = ioutil.WriteFile("test.json", file, 0644)
+
 	//fmt.Printf("\nLength: %d bytes", len)
 	fmt.Println("\nFile Name: ")
 }
