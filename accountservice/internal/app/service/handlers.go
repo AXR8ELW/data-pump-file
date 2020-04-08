@@ -31,9 +31,6 @@ func createFile(accounts model.Accounts) {
 
 	file, _ := json.MarshalIndent(accounts, "", " ")
 	_ = ioutil.WriteFile("test.json", file, 0644)
-
-	//fmt.Printf("\nLength: %d bytes", len)
-	fmt.Println("\nFile Name: ")
 }
 
 func readFile() {
