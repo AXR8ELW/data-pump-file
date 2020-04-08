@@ -2,24 +2,19 @@ PROJECT_NAME ?= accountservice
 SHELL 	 := /bin/bash
 executable := accountservice
 
-all: fmt test $(executable)
-
-clean:
-	@rm -rf bin/*
-
-$(executable):
-	@echo Building $(executable)
-	GO111MODULE=on go build -o bin/$@ cmd/$@/main.go
-
 build:
-	@echo Building $(executable)
-	GOOS=linux GO111MODULE=on go build -o bin/$(executable) cmd/$(executable)/main.go
-	docker build -t someprefix/$(executable) -f Dockerfile .
+	go build -o bin/main main.go
 
-fmt:
-	find . -name '*.go' | grep -v vendor | xargs gofmt -w -s
+run:
+	go run main.go
 
-test:
-	go test ./...
-
-.PHONY: clean $(executable) build fmt test
+compile:
+        # 64-Bit
+	# FreeBDS
+	GOOS=freebsd GOARCH=amd64 go build -o bin/main-freebsd-amd64 main.go
+	# MacOS
+	GOOS=darwin GOARCH=amd64 go build -o bin/main-darwin-amd64 main.go
+	# Linux
+	GOOS=linux GOARCH=amd64 go build -o bin/main-linux-amd64 main.go
+	# Windows
+	GOOS=windows GOARCH=amd64 go build -o bin/main-windows-amd64 main.go

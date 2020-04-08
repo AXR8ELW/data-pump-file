@@ -12,7 +12,6 @@ var appName = "accountservice"
 func main() {
 	fmt.Printf("Starting %v\n", appName)
 	initializeBoltClient() // NEW
-	fmt.Println("going to get account")
 	service.GetAccount("10000")
 }
 

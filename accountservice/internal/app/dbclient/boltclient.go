@@ -63,13 +63,34 @@ func (bc *BoltClient) SeedAccounts() {
 	}
 	fmt.Printf("Seeded %v fake accounts...\n", total)
 }
+func (bc *BoltClient) QueryAccountFilter() (model.Accounts, error) {
+	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
+	account := model.Account{}
+	accounts := model.Accounts{}
 
-// // Start seeding accounts
-// func (bc *BoltClient) Seed() {
-// 	initializeBucket()
-// 	seedAccounts()
-// }
+	// Read an object from the bucket using boltDB.View
+	err := bc.boltDB.View(func(tx *bolt.Tx) error {
+		// Read the bucket from the DB
+		c := tx.Bucket([]byte("AccountBucket")).Cursor()
 
+		//Filtering accounts with accountId between 10075 and 10094
+		min := []byte("10075")
+		max := []byte("10094")
+		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
+			fmt.Println(string(k), string(v))
+			json.Unmarshal(v, &account)
+			accounts.Account = append(accounts.Account, account)
+		}
+		// Return nil to indicate nothing went wrong, e.g no error
+		return nil
+	})
+	// If there were an error, return the error
+	if err != nil {
+		return model.Accounts{}, err
+	}
+	// Return the Account struct and nil as error.
+	return accounts, nil
+}
 func (bc *BoltClient) QueryAccountById(accountId string) (model.Account, error) {
 	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
 	account := model.Account{}
@@ -108,11 +129,6 @@ func (bc *BoltClient) QueryAccount() (model.Accounts, error) {
 		// Read the bucket from the DB
 		b := tx.Bucket([]byte("AccountBucket"))
 
-		// Read the value identified by our accountId supplied as []byte
-		accountBytes := b
-		if accountBytes == nil {
-			return fmt.Errorf("No account found for ")
-		}
 		b.ForEach(func(k, v []byte) error {
 			fmt.Println(string(k), string(v))
 			json.Unmarshal(v, &account)
@@ -128,35 +144,6 @@ func (bc *BoltClient) QueryAccount() (model.Accounts, error) {
 	if err != nil {
 		return model.Accounts{}, err
 	}
-	fmt.Println("Success AccountArray:")
-	// Return the Account struct and nil as error.
-	return accounts, nil
-}
-func (bc *BoltClient) QueryAccountFilter() (model.Accounts, error) {
-	// Allocate an empty Account instance we'll let json.Unmarhal populate for us in a bit.
-	account := model.Account{}
-	accounts := model.Accounts{}
-
-	// Read an object from the bucket using boltDB.View
-	err := bc.boltDB.View(func(tx *bolt.Tx) error {
-		// Read the bucket from the DB
-		c := tx.Bucket([]byte("AccountBucket")).Cursor()
-		min := []byte("10075")
-		max := []byte("10094")
-		for k, v := c.Seek(min); k != nil && bytes.Compare(k, max) <= 0; k, v = c.Next() {
-			fmt.Println(string(k), string(v))
-			json.Unmarshal(v, &account)
-			accounts.Account = append(accounts.Account, account)
-		}
-
-		// Return nil to indicate nothing went wrong, e.g no error
-		return nil
-	})
-	// If there were an error, return the error
-	if err != nil {
-		return model.Accounts{}, err
-	}
-	fmt.Println("Success AccountArray:")
 	// Return the Account struct and nil as error.
 	return accounts, nil
 }
